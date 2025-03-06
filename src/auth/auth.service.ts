@@ -41,7 +41,7 @@ export class AuthService {
       });
 
       // Затем создаем прокси
-      const newProxy = await this.proxyService.createProxy(newUserId, true);
+      const newProxy = await this.proxyService.createProxy(newUserId, {}, true);
       await this.userModel.update(
         { masterProxyUUID: newProxy.ProxyUUID },
         { where: { userId: newUserId } },

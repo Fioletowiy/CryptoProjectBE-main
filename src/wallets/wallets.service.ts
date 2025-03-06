@@ -140,11 +140,11 @@ export class PostsService {
       });
 
       const response = {
-        content: wallets,
         totalItems: count,
         totalPages: Math.ceil(count / limit),
         currentPage: parseInt(page, 10),
-        size: limit,
+        pageSize: limit,
+        content: wallets,
       };
       return response;
     } catch (error) {

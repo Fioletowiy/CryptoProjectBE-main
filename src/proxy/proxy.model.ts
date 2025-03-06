@@ -9,7 +9,7 @@ import {
 import { UsersModel } from 'src/users/users.model';
 import { WalletsModel } from '../wallets/models/wallets.model';
 
-@Table({ tableName: 'proxy', createdAt: false, updatedAt: false })
+@Table({ tableName: 'proxy', createdAt: true, updatedAt: true })
 export class ProxyModel extends Model<ProxyModel> {
   @Column({
     type: DataType.UUID,
@@ -20,10 +20,22 @@ export class ProxyModel extends Model<ProxyModel> {
   ProxyUUID: string;
 
   @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  ProxyId: number;
+
+  @Column({
     type: DataType.STRING,
     allowNull: false,
   })
   ProxyName: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  ProxyComment: string;
 
   @Column({
     type: DataType.STRING,
