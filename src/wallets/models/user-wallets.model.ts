@@ -5,8 +5,8 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { WalletsModel } from '../wallets/wallets.model';
-import { UsersModel } from '../users/users.model';
+import { WalletsModel } from './wallets.model';
+import { UsersModel } from '../../users/users.model';
 
 @Table({ tableName: 'user_wallets', createdAt: false, updatedAt: false })
 export class UserWallets extends Model<UserWallets> {
@@ -19,8 +19,8 @@ export class UserWallets extends Model<UserWallets> {
   id: number;
 
   @ForeignKey(() => WalletsModel)
-  @Column({ type: DataType.STRING })
-  steamId: string;
+  @Column({ type: DataType.UUID })
+  walletUUID: string;
 
   @ForeignKey(() => UsersModel)
   @Column({ type: DataType.UUID })

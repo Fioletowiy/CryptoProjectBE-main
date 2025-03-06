@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/sequelize';
 import { UsersModel } from '../users/users.model';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
+import { ProxyService } from 'src/proxy/proxy.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(UsersModel)
     private userModel: typeof UsersModel,
+    private readonly proxyService: ProxyService,
     private jwtService: JwtService,
   ) {}
 
@@ -38,11 +40,17 @@ export class AuthService {
         userRole: ['guest'],
       });
 
+      // Затем создаем прокси
+      const newProxy = await this.proxyService.createProxy(newUserId, true);
+      await this.userModel.update(
+        { masterProxyUUID: newProxy.ProxyUUID },
+        { where: { userId: newUserId } },
+      );
+
       const newUserData = await this.userModel.findOne({
         where: { email },
       });
 
-      console.log(newUserData);
       return newUserData;
     } else {
       const currentUser = user[0];

@@ -9,11 +9,13 @@ import { UsersModel } from 'src/users/users.model';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ProxyModule } from 'src/proxy/proxy.module';
 
 @Module({
   imports: [
     PassportModule,
     UsersModule,
+    ProxyModule,
     SequelizeModule.forFeature([UsersModel]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

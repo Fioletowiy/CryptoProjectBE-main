@@ -5,16 +5,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import configurations from './configurations';
 import { UsersModel } from './users/users.model';
-import { WalletsModel } from './wallets/wallets.model';
-import { UserWallets } from './wallets/user-wallets.model';
+import { WalletsModel } from './wallets/models/wallets.model';
+import { UserWallets } from './wallets/models/user-wallets.model';
 import { AuthModule } from './auth/auth.module';
 import { AuthorizationMiddleware } from './AuthorizationMiddleware';
+import { ProxyModel } from './proxy/proxy.model';
+import { WalletAddressesModel } from './wallets/models/walletsAddresses.model';
+import { BlockchainModule } from './blockChains/blockchain.module';
 
 @Module({
   controllers: [],
   providers: [],
   imports: [
     UsersModule,
+    BlockchainModule,
     PostsModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -30,7 +34,13 @@ import { AuthorizationMiddleware } from './AuthorizationMiddleware';
         username: configService.get('POSTGRESQL_USERNAME'),
         password: configService.get('POSTGRESQL_PASSWORD'),
         database: configService.get('POSTGRESQL_DATABASE'),
-        models: [UsersModel, WalletsModel, UserWallets],
+        models: [
+          UsersModel,
+          WalletsModel,
+          WalletAddressesModel,
+          UserWallets,
+          ProxyModel,
+        ],
         autoLoadModels: false,
       }),
       inject: [ConfigService],

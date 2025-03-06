@@ -4,5 +4,6 @@ export interface UsersAttrs {
   userSurname: string;
   userEmail: string;
   userRegisterDate: string;
+  masterProxyUUID: string;
   userPostsId: number[];
 }

@@ -5,5 +5,6 @@ export interface UsersAttrs {
   email: string;
   picture: string;
   accessToken: string;
+  masterProxyUUID: string;
   userRole: Array<string>;
 }

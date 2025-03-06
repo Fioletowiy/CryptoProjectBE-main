@@ -7,7 +7,6 @@ import {
   Req,
   Delete,
   Query,
-  Patch,
 } from '@nestjs/common';
 import { PostsService } from './wallets.service';
 import { WalletsDto } from './dto/wallets.dto';
@@ -23,31 +22,49 @@ export class PostsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')
-  async getUserAccounts(@Req() req) {
-    const answer = this.postsService.getUserAccounts(req);
+  async getUserWallets(
+    @Req() req,
+    @Query('size') size: number,
+    @Query('page') page: number,
+    @Query('proxyStatus') proxyStatus: string,
+    @Query('sortBy') sortBy: string,
+    @Query('sortOrder') sortOrder: string,
+  ) {
+    const answer = await this.postsService.getUserWallets({
+      ...req,
+      query: { size, page, proxyStatus, sortBy, sortOrder },
+    });
     return answer;
+  }
+
+  @Get('test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('creator')
+  async testFoo(@Query('key') key: string) {
+    const a = await this.postsService.testFoo(key);
+    return a;
   }
 
   // todo - добавить массовое создание
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')
-  async createAccount(@Body() postData: WalletsDto, @Req() req) {
-    const answer = this.postsService.createAccount(postData, req);
+  async generateNewWallets(@Body() postData: WalletsDto, @Req() req) {
+    const answer = this.postsService.generateNewWallets(postData, req);
     return answer;
   }
 
-  @Patch()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('creator')
-  async updateAccount(
-    @Query('accountId') accountId: string,
-    @Body() postData: WalletsDto,
-    @Req() req,
-  ) {
-    const answer = this.postsService.editUserAccount(accountId, postData, req);
-    return answer;
-  }
+  // @Patch()
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('creator')
+  // async updateAccount(
+  //   @Query('accountId') accountId: string,
+  //   @Body() postData: WalletsDto,
+  //   @Req() req,
+  // ) {
+  //   const answer = this.postsService.editUserAccount(accountId, postData, req);
+  //   return answer;
+  // }
 
   @Delete()
   @UseGuards(JwtAuthGuard, RolesGuard)
