@@ -4,6 +4,7 @@ import { UsersModel } from '../users/users.model';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { ProxyService } from 'src/proxy/proxy.service';
+import { ProxyModel } from 'src/proxy/proxy.model';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,7 @@ export class AuthService {
       // Затем создаем прокси
       const newProxy = await this.proxyService.createProxy(newUserId, {}, true);
       await this.userModel.update(
-        { masterProxyUUID: newProxy.ProxyUUID },
+        { masterProxyUUID: (newProxy as ProxyModel).ProxyUUID },
         { where: { userId: newUserId } },
       );
 

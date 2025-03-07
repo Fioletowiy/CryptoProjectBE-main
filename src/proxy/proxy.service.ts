@@ -3,6 +3,9 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 import { ProxyModel } from './proxy.model';
 import { v4 as uuidv4 } from 'uuid';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import fetch from 'node-fetch';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 @Injectable()
 export class ProxyService {
@@ -11,28 +14,70 @@ export class ProxyService {
     private readonly proxyRepository: typeof ProxyModel,
   ) {}
 
-  async getMasterProxy(ownerId: string): Promise<ProxyModel> {
+  async getMasterProxy(ownerId: string, systemRequest?: boolean) {
     try {
-      return await this.proxyRepository.findOne({
+      const masterProxy = await this.proxyRepository.findOne({
         where: { ownerId: ownerId, ProxyName: 'Master proxy' },
       });
+
+      if (systemRequest) {
+        return masterProxy;
+      }
+
+      return {
+        ProxyId: masterProxy.ProxyId,
+        ProxyName: masterProxy.ProxyName,
+        ProxyComment: masterProxy.ProxyComment,
+        ProxyIP: masterProxy.ProxyIP,
+        ProxyPort: masterProxy.ProxyPort,
+        ProxyUserName: masterProxy.ProxyUserName,
+        ProxyPassword: masterProxy.ProxyPassword,
+        ProxyProtocol: masterProxy.ProxyProtocol,
+        ProxyStatus: masterProxy.ProxyStatus,
+      };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 
-  async editMasterProxy(
-    ownerId: string,
-    proxyData: Partial<ProxyModel>,
-  ): Promise<ProxyModel> {
+  async editMasterProxy(ownerId: string, proxyData: Partial<ProxyModel>) {
     try {
-      const masterProxy = await this.getMasterProxy(ownerId);
-      await this.proxyRepository.update(proxyData, {
-        where: { ProxyUUID: masterProxy.ProxyUUID },
+      const masterProxy = await this.getMasterProxy(ownerId, true);
+      const dataToUpdate = {};
+
+      const fieldsToUpdate = [
+        'ProxyComment',
+        'ProxyIP',
+        'ProxyPort',
+        'ProxyUserName',
+        'ProxyPassword',
+        'ProxyProtocol',
+        'ProxyStatus',
+      ];
+
+      fieldsToUpdate.forEach((field) => {
+        if (proxyData[field] !== undefined) {
+          dataToUpdate[field] = proxyData[field];
+        }
       });
-      return await this.getProxyByUUID(masterProxy.ProxyUUID);
+
+      await this.proxyRepository.update(dataToUpdate, {
+        where: { ProxyUUID: (masterProxy as ProxyModel).ProxyUUID },
+      });
+      return {
+        status: 'success',
+        message: 'Master proxy updated successfully',
+      };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 
@@ -40,7 +85,8 @@ export class ProxyService {
     ownerId: string,
     proxyData: Partial<ProxyModel>,
     isMasterProxy?: boolean,
-  ): Promise<ProxyModel> {
+    isSystemRequest?: boolean,
+  ) {
     try {
       const { count: proxyCount } = await this.proxyRepository.findAndCountAll({
         where: { ownerId: ownerId },
@@ -69,9 +115,29 @@ export class ProxyService {
         ProxyStatus: proxyData?.ProxyStatus || 'new',
         ownerId: ownerId,
       };
-      return await this.proxyRepository.create(newProxy);
+      const createdProxy = await this.proxyRepository.create(newProxy);
+
+      if (isSystemRequest) {
+        return createdProxy;
+      }
+
+      return {
+        ProxyId: createdProxy.ProxyId,
+        ProxyName: createdProxy.ProxyName,
+        ProxyComment: createdProxy.ProxyComment,
+        ProxyIP: createdProxy.ProxyIP,
+        ProxyPort: createdProxy.ProxyPort,
+        ProxyUserName: createdProxy.ProxyUserName,
+        ProxyPassword: createdProxy.ProxyPassword,
+        ProxyProtocol: createdProxy.ProxyProtocol,
+        ProxyStatus: createdProxy.ProxyStatus,
+      };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 
@@ -115,6 +181,10 @@ export class ProxyService {
       };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 
@@ -131,14 +201,28 @@ export class ProxyService {
       }
       return {
         status: 'success',
-        data: proxy,
+        data: {
+          ProxyId: proxy.ProxyId,
+          ProxyName: proxy.ProxyName,
+          ProxyComment: proxy.ProxyComment,
+          ProxyIP: proxy.ProxyIP,
+          ProxyPort: proxy.ProxyPort,
+          ProxyUserName: proxy.ProxyUserName,
+          ProxyPassword: proxy.ProxyPassword,
+          ProxyProtocol: proxy.ProxyProtocol,
+          ProxyStatus: proxy.ProxyStatus,
+        },
       };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 
-  async getProxyByUUID(proxyUUID: string): Promise<ProxyModel> {
+  async getProxyByUUID(proxyUUID: string) {
     try {
       return await this.proxyRepository.findOne({
         where: { ProxyUUID: proxyUUID },
@@ -150,8 +234,31 @@ export class ProxyService {
 
   async editProxyById(ownerId: string, proxyId: number, proxyData: any) {
     try {
+      if (proxyId === 1) {
+        this.editMasterProxy(ownerId, proxyData);
+      }
+
+      const dataToUpdate = {};
+
+      const fieldsToUpdate = [
+        'ProxyName',
+        'ProxyComment',
+        'ProxyIP',
+        'ProxyPort',
+        'ProxyUserName',
+        'ProxyPassword',
+        'ProxyProtocol',
+        'ProxyStatus',
+      ];
+
+      fieldsToUpdate.forEach((field) => {
+        if (proxyData[field] !== undefined) {
+          dataToUpdate[field] = proxyData[field];
+        }
+      });
+
       const [numberOfAffectedRows, affectedRows] =
-        await this.proxyRepository.update(proxyData, {
+        await this.proxyRepository.update(dataToUpdate, {
           where: { ownerId: ownerId, ProxyId: proxyId },
           returning: true,
         });
@@ -178,7 +285,9 @@ export class ProxyService {
 
   async deleteProxyById(ownerId: string, proxyIds: string) {
     try {
-      const proxyIdArray = JSON.parse(proxyIds);
+      const proxyIdArray = JSON.parse(proxyIds).filter(
+        (id) => !isNaN(id) && id > 1,
+      );
       if (proxyIdArray.length === 0) {
         return {
           status: 'error',
@@ -186,8 +295,6 @@ export class ProxyService {
         };
       }
 
-      console.log('proxyIds -> ', proxyIds);
-      console.log('proxyIdArray -> ', typeof proxyIdArray[1]);
       const result = await this.proxyRepository.destroy({
         where: {
           ownerId: ownerId,
@@ -215,29 +322,71 @@ export class ProxyService {
     }
   }
 
-  async checkProxy(ownerId: string, proxyId: number, proxyProtocol: string) {
+  async checkProxy(ownerId: string, proxyId: number) {
     try {
       const proxy = await this.proxyRepository.findOne({
         where: {
           ownerId: ownerId,
-          id: proxyId,
-          ProxyProtocol: proxyProtocol,
+          ProxyId: proxyId,
         },
       });
-
-      // потом сделать функцию проверки через API
       if (!proxy) {
         return {
           status: 'error',
           message: 'Proxy not found',
         };
       }
+      let agent;
+      if (proxy.ProxyProtocol === 'socks5') {
+        const proxySocksUrl = `socks5://${proxy.ProxyUserName}:${proxy.ProxyPassword}@${proxy.ProxyIP}:${proxy.ProxyPort}`;
+        agent = new SocksProxyAgent(proxySocksUrl);
+      } else {
+        const proxyHttpUrl = `http://${proxy.ProxyUserName}:${proxy.ProxyPassword}@${proxy.ProxyIP}:${proxy.ProxyPort}`;
+        agent = new HttpsProxyAgent(proxyHttpUrl);
+      }
+      try {
+        const response = await fetch('https://api.ipify.org?format=json', {
+          method: 'GET',
+          timeout: 5000,
+          agent: agent,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            status: 'success',
+            message: `Proxy is working, your IP: ${data.ip}`,
+          };
+        }
+      } catch (error) {
+        console.log('Primary check failed, trying backup:', error.message);
+        try {
+          const backupResponse = await fetch('https://www.google.com', {
+            method: 'GET',
+            timeout: 5000,
+            agent: agent,
+          });
+
+          if (backupResponse.ok) {
+            return {
+              status: 'success',
+              message: 'Proxy is working, but primary check failed',
+            };
+          }
+        } catch (backupError) {
+          console.log('Backup check failed:', backupError.message);
+        }
+      }
       return {
-        status: 'success',
-        data: proxy,
+        status: 'error',
+        message: 'Proxy check failed',
       };
     } catch (error) {
       console.log(error);
+      return {
+        status: 'error',
+        message: 'Server error',
+      };
     }
   }
 }

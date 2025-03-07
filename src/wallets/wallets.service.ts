@@ -49,7 +49,10 @@ export class PostsService {
 
         //Todo реализовать функционал подтягивания прокси
 
-        const masterProxy = await this.proxyService.getMasterProxy(userId);
+        const masterProxy = await this.proxyService.getMasterProxy(
+          userId,
+          true,
+        );
 
         const newWallet = {
           walletId: walletId,
@@ -59,7 +62,7 @@ export class PostsService {
           walletStatus: 'New',
           mnemonicPhrase: wallet.mnemonicPhrase,
           proxyStatus: 'default-status',
-          proxyUUID: masterProxy.ProxyUUID, // Используем идентификатор созданного прокси
+          proxyUUID: (masterProxy as ProxyModel).ProxyUUID, // Используем идентификатор созданного прокси
           ownerId: req.user.userId,
         };
 

@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProxyService } from './proxy.service';
-import { ProxyModel } from './proxy.model';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 
@@ -21,21 +20,21 @@ export class ProxyController {
   // получить свой мастер.прокси
   @Get('master')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async getMasterProxy(@Req() req): Promise<ProxyModel> {
+  async getMasterProxy(@Req() req) {
     return await this.proxyService.getMasterProxy(req.user.userId);
   }
 
   // изменить свой мастер.прокси
   @Patch('master')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async editMasterProxy(@Req() req, @Body() proxyData): Promise<ProxyModel> {
+  async editMasterProxy(@Req() req, @Body() proxyData) {
     return await this.proxyService.editMasterProxy(req.user.userId, proxyData);
   }
 
   // Добавить прокси (создание) create
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async createProxy(@Req() req, @Body() proxyData): Promise<ProxyModel> {
+  async createProxy(@Req() req, @Body() proxyData) {
     return await this.proxyService.createProxy(
       req.user.userId,
       proxyData,
@@ -105,15 +104,7 @@ export class ProxyController {
   // check proxy - проверка прокси на работоспособность (с указанием id прокси и протоколом)
   @Get('check')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async checkProxy(
-    @Req() req,
-    @Query('proxyId') proxyId: number,
-    @Query('proxyProtocol') proxyProtocol: string,
-  ) {
-    return await this.proxyService.checkProxy(
-      req.user.userId,
-      proxyId,
-      proxyProtocol,
-    );
+  async checkProxy(@Req() req, @Query('proxyId') proxyId: number) {
+    return await this.proxyService.checkProxy(req.user.userId, proxyId);
   }
 }
