@@ -353,6 +353,12 @@ export class ProxyService {
 
         if (response.ok) {
           const data = await response.json();
+          if (proxy.ProxyStatus !== 'active') {
+            await this.proxyRepository.update(
+              { ProxyStatus: 'active' },
+              { where: { ownerId: ownerId, ProxyId: proxyId } },
+            );
+          }
           return {
             status: 'success',
             message: `Proxy is working, your IP: ${data.ip}`,
@@ -368,6 +374,12 @@ export class ProxyService {
           });
 
           if (backupResponse.ok) {
+            if (proxy.ProxyStatus !== 'active') {
+              await this.proxyRepository.update(
+                { ProxyStatus: 'active' },
+                { where: { ownerId: ownerId, ProxyId: proxyId } },
+              );
+            }
             return {
               status: 'success',
               message: 'Proxy is working, but primary check failed',
@@ -377,6 +389,10 @@ export class ProxyService {
           console.log('Backup check failed:', backupError.message);
         }
       }
+      await this.proxyRepository.update(
+        { ProxyStatus: 'inactive' },
+        { where: { ownerId: ownerId, ProxyId: proxyId } },
+      );
       return {
         status: 'error',
         message: 'Proxy check failed',
