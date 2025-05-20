@@ -19,6 +19,7 @@ export class PostsController {
   constructor(private postsService: PostsService) {}
 
   // todo - добавить пагинацию
+  // Получить все кошельки
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')
@@ -37,16 +38,35 @@ export class PostsController {
     return answer;
   }
 
-  @Get('test')
+  // Получить кошелёк по id
+  @Get('id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')
-  async testFoo(@Query('key') key: string) {
-    const a = await this.postsService.testFoo(key);
-    return a;
+  async getWalletById(@Query('id') id: string) {
+    const answer = await this.postsService.getWalletById(id);
+    return answer;
   }
 
-  // todo - добавить массовое создание
+  // Создать новый кошелёк с параметрами
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('creator')
+  async createNewWallet(@Body() postData: WalletsDto, @Req() req) {
+    const answer = this.postsService.createNewWallet(postData, req);
+    return answer;
+  }
+
+  // Изменить кошелёк по id
+  @Post('edit')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('creator')
+  async editWalletById(@Body() postData: WalletsDto, @Req() req) {
+    const answer = this.postsService.editWalletById(postData, req);
+    return answer;
+  }
+
+  // массовая генерация кошельков
+  @Post('mass')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')
   async generateNewWallets(@Body() postData: WalletsDto, @Req() req) {
@@ -54,18 +74,7 @@ export class PostsController {
     return answer;
   }
 
-  // @Patch()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('creator')
-  // async updateAccount(
-  //   @Query('accountId') accountId: string,
-  //   @Body() postData: WalletsDto,
-  //   @Req() req,
-  // ) {
-  //   const answer = this.postsService.editUserAccount(accountId, postData, req);
-  //   return answer;
-  // }
-
+  // удалить кошельки. не готово
   @Delete()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('creator')

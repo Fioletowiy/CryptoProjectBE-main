@@ -25,6 +25,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      walletComment: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       walletStatus: {
         type: Sequelize.STRING,
         allowNull: false,

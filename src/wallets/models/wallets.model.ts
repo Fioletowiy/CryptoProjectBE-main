@@ -47,6 +47,12 @@ export class WalletsModel extends Model<WalletsModel, WalletsAttrs> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
+  })
+  walletComment: string;
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false,
   })
   walletStatus: string;

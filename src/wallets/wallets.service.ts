@@ -22,14 +22,6 @@ export class PostsService {
     private configService: ConfigService,
   ) {}
 
-  async testFoo(key: string) {
-    try {
-      return key;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async generateNewWallets(postData, req) {
     const userId = req.user.userId;
     const count = postData.count;
@@ -91,6 +83,10 @@ export class PostsService {
       size = 10,
       page = 1,
       proxyStatus,
+      walletId,
+      walletName,
+      walletStatus,
+      walletComment,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
     } = req.query; // Получаем параметры size и page из query
@@ -101,6 +97,12 @@ export class PostsService {
     if (proxyStatus) {
       whereCondition.proxyStatus = proxyStatus;
     }
+    if (walletId) whereCondition.walletId = walletId;
+    if (walletName)
+      whereCondition.walletName = { [Op.iLike]: `%${walletName}%` };
+    if (walletComment)
+      whereCondition.walletComment = { [Op.iLike]: `%${walletComment}%` };
+    if (walletStatus) whereCondition.walletStatus = walletStatus;
 
     const whereObject = {
       where: whereCondition,
